@@ -27,7 +27,7 @@ public class Main extends Application {
         final MapViewer mapViewer = new MapViewer(graphicsContext, roadsMap);
 
         final Simulation simulation = new Simulation(roadsMap, 40, mapViewer::drawCars,
-                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars());
+                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 100);
         simulation.run();
     }
 

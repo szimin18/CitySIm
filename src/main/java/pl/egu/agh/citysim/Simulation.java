@@ -7,8 +7,6 @@ import lombok.AllArgsConstructor;
 import pl.egu.agh.citysim.model.*;
 
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -22,7 +20,6 @@ import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.String.format;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.function.Predicate.isEqual;
 import static java.util.stream.Stream.empty;
 import static java.util.stream.Stream.of;
@@ -40,13 +37,22 @@ public class Simulation {
     private final ImmutableSet<String> starts;
     private final ImmutableSet<String> ends;
     private final int requiredNumberOfCars;
+    private final int simulationSteps;
     private final List<Long> carTimes = newArrayList();
 
+    public double averageCarTime() {
+        return carTimes.stream().mapToDouble(t -> t).average().orElse(0);
+    }
+
     public void run() {
-        final AtomicReference<CarsState> carsState = new AtomicReference<>(new CarsState(ImmutableSet.of(), roadsMap));
-        Executors.newSingleThreadScheduledExecutor()
-                .scheduleAtFixedRate(() -> carsUpdateConsumer.accept(carsState.updateAndGet(this::calculateFrame)),
-                        intervalMiliseconds, intervalMiliseconds, MILLISECONDS);
+        CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
+        for (int i = 0; i < simulationSteps; i++) {
+            carsState = calculateFrame(carsState);
+            carsUpdateConsumer.accept(carsState);
+        }
+//        Executors.newSingleThreadScheduledExecutor()
+//                .scheduleAtFixedRate(() -> carsUpdateConsumer.accept(carsState.updateAndGet(this::calculateFrame)),
+//                        intervalMiliseconds, intervalMiliseconds, MILLISECONDS);
     }
 
     private CarsState calculateFrame(final CarsState carsState) {
