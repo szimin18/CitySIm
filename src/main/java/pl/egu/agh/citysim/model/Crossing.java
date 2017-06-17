@@ -18,8 +18,6 @@ import static java.util.stream.Collectors.toList;
 @EqualsAndHashCode(of = {"coordinates", "name"})
 @RequiredArgsConstructor
 public class Crossing {
-    private static final double INITIAL_LIGHTS_TIME_MILISECONDS = 3000;
-
     private final Coordinates coordinates;
     private final String name;
     private List<Road> inRoads = newArrayList();
@@ -30,7 +28,7 @@ public class Crossing {
     private double greenPassedMiliseconds = 0;
 
     public void initialize() {
-        lightsTimes.addAll(Stream.generate(() -> INITIAL_LIGHTS_TIME_MILISECONDS).limit(inRoads.size()).collect(toList()));
+        lightsTimes.addAll(Stream.generate(() -> 0.).limit(inRoads.size()).collect(toList()));
     }
 
     public void passed(final double miliseconds) {

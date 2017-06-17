@@ -2,7 +2,9 @@ package pl.egu.agh.citysim.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import javafx.util.Pair;
 import lombok.*;
+import pl.egu.agh.citysim.burlap.CitySimState;
 
 import java.util.Map;
 import java.util.Set;
@@ -47,8 +49,20 @@ public class RoadsMap {
             return this;
         }
 
-        public RoadsMap build() {
+        public RoadsMap build(CitySimState state) {
             crossings.values().forEach(Crossing::initialize);
+            state.variableKeys().stream()
+                    .map(o -> (Pair<String,String>)o)
+                    .forEach(roadDefinition -> {
+                        Crossing crossing = crossings.get(roadDefinition.getValue());
+                        Road road = crossing.getInRoads().stream()
+                                .filter(r -> r.getStart().getName().equals(roadDefinition.getKey()))
+                                .findFirst()
+                                .get();
+                        int ind = crossing.getInRoads().indexOf(road);
+                        crossing.getLightsTimes().remove(ind);
+                        crossing.getLightsTimes().add(ind, state.get(roadDefinition));
+                    });
             return new RoadsMap(ImmutableSet.copyOf(crossings.values()), ImmutableSet.copyOf(roads));
         }
     }

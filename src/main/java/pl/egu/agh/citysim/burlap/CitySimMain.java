@@ -6,22 +6,19 @@ import burlap.behavior.singleagent.auxiliary.performance.TrialMode;
 import burlap.behavior.singleagent.learning.LearningAgent;
 import burlap.behavior.singleagent.learning.LearningAgentFactory;
 import burlap.behavior.singleagent.learning.tdmethods.QLearning;
-import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.SADomain;
 import burlap.mdp.singleagent.environment.SimulatedEnvironment;
 import burlap.statehashing.simple.SimpleHashableStateFactory;
-
-import static com.google.common.collect.Maps.newHashMap;
+import pl.egu.agh.citysim.SimulationRunner;
 
 
 public class CitySimMain {
 
 	public static void main(String [] args){
 
-		final CitySimWorld citySimWorld = new CitySimWorld();
+	    final SimulationRunner simulationRunner = new SimulationRunner();
+		final CitySimWorld citySimWorld = new CitySimWorld(simulationRunner);
 		final SADomain citySimWorldDomain = citySimWorld.generateDomain();
-
-        State initialState = new CitySimState(newHashMap());
 
 		//set up the state hashing system for looking up states - ???
 		final SimpleHashableStateFactory hashingFactory = new SimpleHashableStateFactory();
@@ -41,7 +38,7 @@ public class CitySimMain {
 		};
 
 		//define learning environment
-		SimulatedEnvironment env = new SimulatedEnvironment(citySimWorldDomain, initialState);
+		SimulatedEnvironment env = new SimulatedEnvironment(citySimWorldDomain, simulationRunner.createInitialState());
 
 		//define experiment
 		LearningAlgorithmExperimenter exp = new LearningAlgorithmExperimenter(env,

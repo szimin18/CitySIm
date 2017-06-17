@@ -33,8 +33,8 @@ public class CitySimState implements MutableState {
     }
 
     @Override
-    public Double get(Object crossing) {
-        return crossingsLightDuration.get(crossing);
+    public Double get(Object roadDefinition) {
+        return crossingsLightDuration.get(roadDefinition);
     }
 
     @Override
