@@ -1,22 +1,20 @@
 package pl.egu.agh.citysim;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import javafx.scene.paint.Color;
 import lombok.AllArgsConstructor;
-import pl.egu.agh.citysim.model.Car;
-import pl.egu.agh.citysim.model.CarsState;
-import pl.egu.agh.citysim.model.Crossing;
-import pl.egu.agh.citysim.model.RoadsMap;
+import pl.egu.agh.citysim.model.*;
 
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Maps.newHashMap;
@@ -39,17 +37,22 @@ public class Simulation {
     private final int requiredNumberOfCars;
 
     public void run() {
-        final AtomicReference<CarsState> carsState = new AtomicReference<>(new CarsState(ImmutableMap.of(), roadsMap));
+        final AtomicReference<CarsState> carsState = new AtomicReference<>(new CarsState(ImmutableSet.of(), roadsMap));
         Executors.newSingleThreadScheduledExecutor()
                 .scheduleAtFixedRate(() -> carsUpdateConsumer.accept(carsState.updateAndGet(this::calculateFrame)),
                         intervalMiliseconds, intervalMiliseconds, MILLISECONDS);
     }
 
-    public CarsState calculateFrame(final CarsState carsState) {
+    private CarsState calculateFrame(final CarsState carsState) {
         final ImmutableSet<Car> cars = carsState.getCars();
         final ImmutableSet<Car> newCars = spawnCars(requiredNumberOfCars - cars.size(), cars);
+        final ImmutableSet<CarShadow> previousCarsSahdows = cars.stream().map(Car::shadow).collect(toImmutableSet());
 
-        return null;
+        final ImmutableSet<Car> movedCars = cars.stream().flatMap(car -> calculateFrameForCar(car, previousCarsSahdows, roadsMap)).collect(toImmutableSet());
+        return new CarsState(ImmutableSet.<Car>builder().addAll(newCars).addAll(movedCars).build(), roadsMap);
+    }
+
+    private Stream<Car> calculateFrameForCar(final Car car, final ImmutableSet<CarShadow> previousCarsSahdows, final RoadsMap roadsMap) {
     }
 
     private ImmutableSet<Car> spawnCars(final int count, final ImmutableSet<Car> allCars) {

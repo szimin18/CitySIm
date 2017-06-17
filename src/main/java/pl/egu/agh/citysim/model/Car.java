@@ -12,14 +12,20 @@ public class Car {
     private final List<Crossing> nextCrossings;
 
     private Road road;
+    private double distancePassedOnRoad;
     private Coordinates location;
     private Optional<Coordinates> previousLocation;
     private boolean moved = false;
 
-    public void moveTo(final Coordinates newLocation) {
+    public void moveTo(final Coordinates newLocation, final Road road, final double distancePassedOnRoad) {
         previousLocation = Optional.ofNullable(location);
         location = newLocation;
         moved = true;
+        if (!this.road.equals(road)) {
+            this.distancePassedOnRoad = 0;
+            this.road = road;
+        }
+        this.distancePassedOnRoad += distancePassedOnRoad;
     }
 
     public void stay() {
@@ -40,5 +46,9 @@ public class Car {
         } else {
             return Optional.of(nextCrossings.get(0));
         }
+    }
+
+    public CarShadow shadow() {
+        return new CarShadow(road, distancePassedOnRoad, moved);
     }
 }

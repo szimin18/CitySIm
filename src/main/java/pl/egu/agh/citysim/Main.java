@@ -1,6 +1,6 @@
 package pl.egu.agh.citysim;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -26,8 +26,7 @@ public class Main extends Application {
         final GraphicsContext graphicsContext = createAndShowStage(primaryStage).getGraphicsContext2D();
         final MapViewer mapViewer = new MapViewer(graphicsContext, roadsMap);
 
-
-        final Simulation simulation = new Simulation(1000, mapViewer::drawCars,
+        final Simulation simulation = new Simulation(roadsMap, 40, mapViewer::drawCars,
                 simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars());
         simulation.run();
     }
@@ -74,6 +73,6 @@ public class Main extends Application {
         builder.addRoad("B", "U");
         builder.addRoad("D", "T");
 
-        return new SimulationParameters(ImmutableList.of("X", "Y", "Z"), ImmutableList.of("W", "U", "T"), 100);
+        return new SimulationParameters(ImmutableSet.of("X", "Y", "Z"), ImmutableSet.of("W", "U", "T"), 100);
     }
 }
