@@ -48,6 +48,7 @@ public class RoadsMap {
         }
 
         public RoadsMap build() {
+            crossings.values().forEach(Crossing::initialize);
             return new RoadsMap(ImmutableSet.copyOf(crossings.values()), ImmutableSet.copyOf(roads));
         }
     }

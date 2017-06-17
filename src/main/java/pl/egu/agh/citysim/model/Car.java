@@ -6,10 +6,13 @@ import lombok.Data;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.System.currentTimeMillis;
+
 @Data
 public class Car {
     private final Color color;
     private final List<Crossing> nextCrossings;
+    private final long creationTime = currentTimeMillis();
 
     private Road road;
     private double distancePassedOnRoad;
@@ -17,15 +20,16 @@ public class Car {
     private Optional<Coordinates> previousLocation;
     private boolean moved = false;
 
-    public void moveTo(final Coordinates newLocation, final Road road, final double distancePassedOnRoad) {
-        previousLocation = Optional.ofNullable(location);
-        location = newLocation;
+    public void moveTo(final Road road, final double distancePassedOnRoad) {
         moved = true;
-        if (!this.road.equals(road)) {
+        if (this.road == null || !this.road.equals(road)) {
             this.distancePassedOnRoad = 0;
             this.road = road;
         }
         this.distancePassedOnRoad += distancePassedOnRoad;
+
+        previousLocation = Optional.ofNullable(location);
+        location = this.road.locationAfterPassing(this.distancePassedOnRoad);
     }
 
     public void stay() {

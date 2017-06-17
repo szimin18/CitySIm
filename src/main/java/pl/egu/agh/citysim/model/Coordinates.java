@@ -34,4 +34,8 @@ public class Coordinates {
     public Coordinates divide(final double value) {
         return new Coordinates(x / value, y / value);
     }
+
+    public Coordinates normalize() {
+        return divide(length());
+    }
 }
