@@ -7,7 +7,6 @@ import lombok.*;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 import static lombok.AccessLevel.PRIVATE;
@@ -30,7 +29,7 @@ public class RoadsMap {
         private final Set<Road> roads = newHashSet();
 
         public Builder addCrossing(final String name, final Coordinates coordinates) {
-            crossings.put(name, new Crossing(coordinates, name, newArrayList(), newArrayList()));
+            crossings.put(name, new Crossing(coordinates, name));
             return this;
         }
 
@@ -39,7 +38,12 @@ public class RoadsMap {
         }
 
         public Builder addRoad(final String start, final String end, final ImmutableList<Coordinates> bendingPoints) {
-            roads.add(new Road(crossings.get(start), crossings.get(end), bendingPoints));
+            final Crossing startCrossing = crossings.get(start);
+            final Crossing endCrossing = crossings.get(end);
+            final Road road = new Road(startCrossing, endCrossing, bendingPoints);
+            startCrossing.getOutRoads().put(endCrossing, road);
+            endCrossing.getInRoads().add(road);
+            roads.add(road);
             return this;
         }
 

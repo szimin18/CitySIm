@@ -6,12 +6,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import lombok.RequiredArgsConstructor;
 import lombok.val;
-import pl.egu.agh.citysim.model.Car;
+import pl.egu.agh.citysim.model.CarsState;
 import pl.egu.agh.citysim.model.Coordinates;
 import pl.egu.agh.citysim.model.Road;
 import pl.egu.agh.citysim.model.RoadsMap;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.IntStream;
 
@@ -19,20 +18,22 @@ import static java.lang.Math.*;
 import static javafx.scene.paint.Color.BLACK;
 
 @RequiredArgsConstructor
-public class SimulationCanvas {
+public class MapViewer {
 
     private final GraphicsContext graphicsContext;
 
     private final RoadsMap roadsMap;
 
-    private static final double MAP_COORDINATES_RANGE = 1000.0;
+    private static final double MAP_COORDINATES_RANGE = 1100.0;
     private static final double PIXELS_MAP_RANGE = 800.0;
     private static final double PIXELS_FOR_MARGINS = 100.0;
 
     private static final double PIXELS_PER_MAP_STEP = PIXELS_MAP_RANGE / MAP_COORDINATES_RANGE;
 
-    private static final double HALF_CROSSING_SIZE = 15.0;
-    private static final double HALF_CAR_SIZE = 5.0;
+    public static final double CROSSING_SIZE = 30;
+    public static final double CAR_SIZE = 10;
+    private static final double HALF_CROSSING_SIZE = CROSSING_SIZE / 2;
+    private static final double HALF_CAR_SIZE = CAR_SIZE / 2;
 
     private static final Color PIMP_PURPLE_COLOR = Color.valueOf("#803CA2");
 
@@ -40,7 +41,7 @@ public class SimulationCanvas {
         return PIXELS_FOR_MARGINS + PIXELS_MAP_RANGE + PIXELS_FOR_MARGINS;
     }
 
-    public void drawMap() {
+    private void drawMap() {
         graphicsContext.setFont(new Font("Arial", HALF_CROSSING_SIZE));
 
         roadsMap.getCrossings().forEach(crossing -> drawCrossing(crossing.getCoordinates(), crossing.getName()));
@@ -91,11 +92,11 @@ public class SimulationCanvas {
         graphicsContext.fillText(name, textX, textY);
     }
 
-    public void drawCars(final List<Car> carsList) {
+    public void drawCars(final CarsState carsState) {
         // FIXME ugly temporary fix
         graphicsContext.clearRect(0, 0, 1000, 1000);
         drawMap();
-        carsList.forEach(car -> drawCar(car.getLocation(), car.getPreviousLocation(), car.getColor()));
+        carsState.getCars().forEach(car -> drawCar(car.getLocation(), car.getPreviousLocation(), car.getColor()));
     }
 
     private void drawCar(final Coordinates location, final Optional<Coordinates> previousLocation, final Color color) {

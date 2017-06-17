@@ -1,5 +1,6 @@
 package pl.egu.agh.citysim;
 
+import com.google.common.collect.ImmutableList;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
@@ -8,6 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import pl.egu.agh.citysim.model.Coordinates;
 import pl.egu.agh.citysim.model.RoadsMap;
+import pl.egu.agh.citysim.model.SimulationParameters;
 
 public class Main extends Application {
     public static void main(final String[] args) {
@@ -18,18 +20,20 @@ public class Main extends Application {
     public void start(final Stage primaryStage) throws Exception {
 
         final RoadsMap.Builder builder = RoadsMap.builder();
-        createMap1(builder);
+        final SimulationParameters simulationParameters = createMap1(builder);
         final RoadsMap roadsMap = builder.build();
 
         final GraphicsContext graphicsContext = createAndShowStage(primaryStage).getGraphicsContext2D();
-        final SimulationCanvas simulationCanvas = new SimulationCanvas(graphicsContext, roadsMap);
+        final MapViewer mapViewer = new MapViewer(graphicsContext, roadsMap);
 
 
-        simulationCanvas.drawMap();
+        final Simulation simulation = new Simulation(1000, mapViewer::drawCars,
+                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars());
+        simulation.run();
     }
 
     private static Canvas createAndShowStage(final Stage stage) {
-        final Canvas canvas = new Canvas(SimulationCanvas.requiredCanvasSize(), SimulationCanvas.requiredCanvasSize());
+        final Canvas canvas = new Canvas(MapViewer.requiredCanvasSize(), MapViewer.requiredCanvasSize());
         final Pane pane = new Pane(canvas);
         final Scene scene = new Scene(pane);
 
@@ -39,7 +43,7 @@ public class Main extends Application {
         return canvas;
     }
 
-    private static void createMap1(final RoadsMap.Builder builder) {
+    private static SimulationParameters createMap1(final RoadsMap.Builder builder) {
         builder.addCrossing("A", new Coordinates(200, 200));
         builder.addCrossing("B", new Coordinates(600, 200));
         builder.addCrossing("G", new Coordinates(800, 200));
@@ -69,5 +73,7 @@ public class Main extends Application {
         builder.addRoad("C", "W");
         builder.addRoad("B", "U");
         builder.addRoad("D", "T");
+
+        return new SimulationParameters(ImmutableList.of("X", "Y", "Z"), ImmutableList.of("W", "U", "T"), 100);
     }
 }
