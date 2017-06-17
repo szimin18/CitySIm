@@ -101,13 +101,11 @@ public class MapViewer {
 
     private void drawCar(final Coordinates location, final Optional<Coordinates> previousLocation, final Color color) {
         final Coordinates scaledCoordinates = scaleCoordinates(location);
-        if (!previousLocation.isPresent()) {
+        if (!previousLocation.isPresent() || previousLocation.get().equals(location)) {
             drawRect(scaledCoordinates, color, HALF_CAR_SIZE);
         } else {
             final Coordinates scaledPreviousLocation = scaleCoordinates(previousLocation.get());
-            final Coordinates movingDirection = scaledCoordinates.substract(scaledPreviousLocation);
-            final double movingDirectionLength = sqrt(pow(movingDirection.getX(), 2) + pow(movingDirection.getY(), 2));
-            final Coordinates unitMovingDirection = movingDirection.map(c -> c / movingDirectionLength * HALF_CAR_SIZE);
+            final Coordinates unitMovingDirection = scaledCoordinates.substract(scaledPreviousLocation).normalize().muliply(HALF_CAR_SIZE);
             final Coordinates rotatedMovingDirection = new Coordinates(-unitMovingDirection.getY(), unitMovingDirection.getX());
             final Coordinates movedLocation = scaledCoordinates.add(rotatedMovingDirection);
             drawRect(movedLocation, color, HALF_CAR_SIZE);
@@ -161,6 +159,4 @@ public class MapViewer {
     private double scaleValue(final double value) {
         return PIXELS_FOR_MARGINS + value * PIXELS_PER_MAP_STEP;
     }
-
-
 }

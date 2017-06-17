@@ -2,6 +2,7 @@ package pl.egu.agh.citysim;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import javafx.animation.AnimationTimer;
 import javafx.scene.paint.Color;
 import lombok.AllArgsConstructor;
 import pl.egu.agh.citysim.model.*;
@@ -32,7 +33,7 @@ public class Simulation {
     private static final ImmutableList<Color> COLORS_LIST = ImmutableList.of(RED, GREEN, BLUE, WHITE);
 
     private final RoadsMap roadsMap;
-    private final int intervalMiliseconds;
+    private final long intervalMiliseconds;
     private final Consumer<CarsState> carsUpdateConsumer;
     private final ImmutableSet<String> starts;
     private final ImmutableSet<String> ends;
@@ -45,18 +46,41 @@ public class Simulation {
     }
 
     public void run() {
-        CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
-        for (int i = 0; i < simulationSteps; i++) {
-            carsState = calculateFrame(carsState);
-            carsUpdateConsumer.accept(carsState);
-        }
+        final AnimationTimer timer = new AnimationTimer() {
+            private CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
+            private final long intervalNanoseconds = intervalMiliseconds * 1000000;
+            private long lastNanoseconds = 0;
+            private long nanosecondsPassed = 0;
+
+            @Override
+            public void handle(final long now) {
+                if (lastNanoseconds != 0) {
+                    nanosecondsPassed += now - lastNanoseconds;
+                    if (nanosecondsPassed > intervalNanoseconds) {
+                        nanosecondsPassed -= intervalNanoseconds;
+                        carsState = calculateFrame(carsState);
+                        carsUpdateConsumer.accept(carsState);
+                    }
+                }
+                lastNanoseconds = now;
+            }
+        };
+        timer.start();
 //        Executors.newSingleThreadScheduledExecutor()
-//                .scheduleAtFixedRate(() -> carsUpdateConsumer.accept(carsState.updateAndGet(this::calculateFrame)),
-//                        intervalMiliseconds, intervalMiliseconds, MILLISECONDS);
+//                .scheduleAtFixedRate(new Runnable() {
+//                    CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
+//
+//                    @Override
+//                    public void run() {
+//                        carsState = calculateFrame(carsState);
+//                        carsUpdateConsumer.accept(carsState);
+//                    }
+//                }, intervalMiliseconds, intervalMiliseconds, MILLISECONDS);
     }
 
     private CarsState calculateFrame(final CarsState carsState) {
         try {
+            System.out.println("frame");
             carsState.getRoadsMap().getCrossings().forEach(crossing -> crossing.passed(intervalMiliseconds));
 
             final ImmutableSet<Car> cars = carsState.getCars();

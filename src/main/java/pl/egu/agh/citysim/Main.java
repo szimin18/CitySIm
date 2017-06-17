@@ -18,7 +18,6 @@ public class Main extends Application {
 
     @Override
     public void start(final Stage primaryStage) throws Exception {
-
         final RoadsMap.Builder builder = RoadsMap.builder();
         final SimulationParameters simulationParameters = createMap1(builder);
         final RoadsMap roadsMap = builder.build();
