@@ -84,19 +84,19 @@ public class Simulation {
             }
         } else {
             CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
-            counter++;
-            if (counter % 10 == 0) {
-                System.out.println("Starting out of timer simulation: " + counter);
-            }
             for (int i = 0; i < simulationSteps; i++) {
                 carsState = calculateFrame(carsState);
+            }
+            counter++;
+            if (counter % 10 == 0) {
+                System.out.println("Finished out of timer simulation: " + counter + " with result " + averageCarTime());
             }
         }
     }
 
     private CarsState calculateFrame(final CarsState carsState) {
         try {
-            carsState.getRoadsMap().getCrossings().forEach(crossing -> crossing.passed(intervalMiliseconds));
+            carsState.getRoadsMap().getCrossings().forEach(crossing -> crossing.passed(40));
 
             final ImmutableSet<Car> cars = carsState.getCars();
             final ImmutableSet<Car> newCars = spawnCars(requiredNumberOfCars - cars.size(), cars);

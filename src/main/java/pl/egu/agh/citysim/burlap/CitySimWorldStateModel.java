@@ -4,6 +4,9 @@ import burlap.mdp.core.action.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.model.statemodel.SampleStateModel;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 // consider FullStateModel with probability distribution for specific action, for now we're using simple solution
 public class CitySimWorldStateModel implements SampleStateModel {
 
@@ -11,6 +14,7 @@ public class CitySimWorldStateModel implements SampleStateModel {
     public State sample(final State state, final Action action) {
         final CitySimAction citySimAction = (CitySimAction) action;
         final CitySimState citySimState = (CitySimState) state;
-        return citySimState.set(citySimAction.getRoadDefinition(), citySimState.get(citySimAction.getRoadDefinition()) + citySimAction.getLightDurationDelta().getDelta());
+        final double newLightsValue = citySimState.get(citySimAction.getRoadDefinition()) + citySimAction.getLightDurationDelta().getDelta();
+        return citySimState.set(citySimAction.getRoadDefinition(), min(12000., max(1500., newLightsValue)));
     }
 }
