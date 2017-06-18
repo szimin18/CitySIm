@@ -15,6 +15,6 @@ public class CitySimWorldStateModel implements SampleStateModel {
         final CitySimAction citySimAction = (CitySimAction) action;
         final CitySimState citySimState = (CitySimState) state;
         final double newLightsValue = citySimState.get(citySimAction.getRoadDefinition()) + citySimAction.getLightDurationDelta().getDelta();
-        return citySimState.set(citySimAction.getRoadDefinition(), min(12000., max(1500., newLightsValue)));
+        return ((CitySimState) citySimState.copy()).set(citySimAction.getRoadDefinition(), min(12000., max(1500., newLightsValue)));
     }
 }
