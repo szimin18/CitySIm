@@ -51,6 +51,7 @@ public class Simulation {
             private final long intervalNanoseconds = intervalMiliseconds * 1000000;
             private long lastNanoseconds = 0;
             private long nanosecondsPassed = 0;
+            private long stepsPassed = 0;
 
             @Override
             public void handle(final long now) {
@@ -60,6 +61,10 @@ public class Simulation {
                         nanosecondsPassed -= intervalNanoseconds;
                         carsState = calculateFrame(carsState);
                         carsUpdateConsumer.accept(carsState);
+                        stepsPassed++;
+                        if (stepsPassed >= simulationSteps) {
+                            stop();
+                        }
                     }
                 }
                 lastNanoseconds = now;
@@ -80,7 +85,6 @@ public class Simulation {
 
     private CarsState calculateFrame(final CarsState carsState) {
         try {
-            System.out.println("frame");
             carsState.getRoadsMap().getCrossings().forEach(crossing -> crossing.passed(intervalMiliseconds));
 
             final ImmutableSet<Car> cars = carsState.getCars();
@@ -106,9 +110,12 @@ public class Simulation {
                     final boolean isMoved = carShadow.isMoved();
                     final double maxDistance = max(0, distancePassedOnRoad - currentCarDistancePassedOnRoad - CAR_SIZE * (isMoved ? 2 : 7 / 5));
                     return min(maxDistance, CAR_SIZE / 5);
-                }).max().orElse(0);
+                }).min().orElse(CAR_SIZE / 5);
 
-        if (maxDistanceForCurrentCar > currentCarRoad.getLength() - currentCarDistancePassedOnRoad) { // reaches end of road
+        if (maxDistanceForCurrentCar == 0) {
+            car.stay();
+            return of(car);
+        } else if (maxDistanceForCurrentCar > currentCarRoad.getLength() - currentCarDistancePassedOnRoad) { // reaches end of road
             if (currentCarRoad.getEnd().isGreen(currentCarRoad)) { // has green light
                 car.markVisited(currentCarRoad.getEnd());
                 if (!car.nextCrossing().isPresent()) { // end of road
@@ -120,8 +127,13 @@ public class Simulation {
                     // TODO
                 }
             } else {
-                car.moveTo(currentCarRoad, currentCarRoad.getLength() - currentCarDistancePassedOnRoad);
-                return of(car);
+                if (currentCarRoad.getLength() > currentCarDistancePassedOnRoad) {
+                    car.moveTo(currentCarRoad, currentCarRoad.getLength() - currentCarDistancePassedOnRoad);
+                    return of(car);
+                } else {
+                    car.stay();
+                    return of(car);
+                }
             }
         } else {
             car.moveTo(currentCarRoad, maxDistanceForCurrentCar);

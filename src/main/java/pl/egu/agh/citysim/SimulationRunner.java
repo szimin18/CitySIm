@@ -1,22 +1,20 @@
 package pl.egu.agh.citysim;
 
-import burlap.mdp.core.action.Action;
 import burlap.mdp.core.action.ActionType;
 import burlap.mdp.core.action.UniversalActionType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import javafx.util.Pair;
 import pl.egu.agh.citysim.burlap.CitySimAction;
 import pl.egu.agh.citysim.burlap.CitySimState;
-import pl.egu.agh.citysim.model.CarsState;
-import pl.egu.agh.citysim.model.Coordinates;
-import pl.egu.agh.citysim.model.RoadsMap;
-import pl.egu.agh.citysim.model.SimulationParameters;
+import pl.egu.agh.citysim.model.*;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+
+import static java.util.stream.Collectors.toMap;
+import static pl.egu.agh.citysim.util.Consumers.empty;
 
 public class SimulationRunner {
 
@@ -59,7 +57,7 @@ public class SimulationRunner {
         builder.addRoad("B", "U");
         builder.addRoad("D", "T");
 
-        return new SimulationParameters(ImmutableSet.of("X", "Y", "Z"), ImmutableSet.of("W", "U", "T"), 100);
+        return new SimulationParameters(ImmutableSet.of("X", "Y", "Z"), ImmutableSet.of("W", "U", "T"), 1000);
     }
 
     public List<ActionType> createAllActions() {
@@ -98,43 +96,27 @@ public class SimulationRunner {
     }
 
     public CitySimState createInitialState() {
-        Map<Pair<String, String>, Double> initialState = Maps.newHashMap();
-        Double initialLightsTime = 3000.;
-        initialState.put(new Pair<>("A", "B"), initialLightsTime);
-        initialState.put(new Pair<>("B", "A"), initialLightsTime);
-        initialState.put(new Pair<>("B", "C"), initialLightsTime);
-        initialState.put(new Pair<>("C", "B"), initialLightsTime);
-        initialState.put(new Pair<>("D", "A"), initialLightsTime);
-        initialState.put(new Pair<>("A", "D"), initialLightsTime);
-        initialState.put(new Pair<>("E", "C"), initialLightsTime);
-        initialState.put(new Pair<>("G", "B"), initialLightsTime);
-        initialState.put(new Pair<>("F", "E"), initialLightsTime);
-        initialState.put(new Pair<>("X", "A"), initialLightsTime);
-        initialState.put(new Pair<>("A", "E"), initialLightsTime);
-        initialState.put(new Pair<>("Z", "D"), initialLightsTime);
-        initialState.put(new Pair<>("C", "W"), initialLightsTime);
-        initialState.put(new Pair<>("B", "U"), initialLightsTime);
-        initialState.put(new Pair<>("D", "T"), initialLightsTime);
-        return new CitySimState(initialState);
+        final Set<Road> roads = builder.getRoads();
+        final Double initialLightsTime = 3000.;
+        return new CitySimState(roads.stream().collect(toMap(road -> new Pair<>(road.getStart().getName(), road.getEnd().getName()), road -> initialLightsTime)));
     }
 
-    public RoadsMap createInitalRoadMap() {
+    public RoadsMap createInitialRoadMap() {
         return builder.build(createInitialState());
     }
 
-    public double run(CitySimState state) {
-        return run(state, c -> {
-        });
+    public double run(final CitySimState state) {
+        return run(state, empty());
     }
 
-    public double run(Consumer<CarsState> carsStateConsumer) {
+    public double run(final Consumer<CarsState> carsStateConsumer) {
         return run(createInitialState(), carsStateConsumer);
     }
 
-    private double run(CitySimState state, Consumer<CarsState> carsUpdateConsumer) {
+    private double run(final CitySimState state, final Consumer<CarsState> carsUpdateConsumer) {
         final RoadsMap roadsMap = builder.build(state);
-        final Simulation simulation = new Simulation(roadsMap, 40, carsUpdateConsumer,
-                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 100);
+        final Simulation simulation = new Simulation(roadsMap, 0, carsUpdateConsumer,
+                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 1000);
         simulation.run();
         return simulation.averageCarTime();
     }

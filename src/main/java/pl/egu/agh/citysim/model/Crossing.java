@@ -14,12 +14,12 @@ import static com.google.common.collect.Maps.newHashMap;
 import static java.util.stream.Collectors.toList;
 
 @Data
-@ToString(of = {"coordinates", "name"})
+@ToString(of = {"name", "coordinates"})
 @EqualsAndHashCode(of = {"coordinates", "name"})
 @RequiredArgsConstructor
 public class Crossing {
-    private final Coordinates coordinates;
     private final String name;
+    private final Coordinates coordinates;
     private List<Road> inRoads = newArrayList();
     private Map<Crossing, Road> outRoads = newHashMap();
     private List<Double> lightsTimes = newArrayList();

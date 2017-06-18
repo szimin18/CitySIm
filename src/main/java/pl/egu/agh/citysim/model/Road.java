@@ -3,13 +3,15 @@ package pl.egu.agh.citysim.model;
 import com.google.common.collect.ImmutableList;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import lombok.Value;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Lists.newLinkedList;
 
+@ToString(of = {"start", "end"})
 @EqualsAndHashCode(of = {"start", "end"})
 @Value
 public class Road {
@@ -40,7 +42,7 @@ public class Road {
     public Coordinates locationAfterPassing(final double distancePassedOnRoad) {
         double distanceLeft = distancePassedOnRoad;
 
-        final List<Coordinates> allCoordinates = newArrayList(getAllCoordinates());
+        final List<Coordinates> allCoordinates = newLinkedList(getAllCoordinates());
         while (allCoordinates.size() > 1 && distanceLeft >= allCoordinates.get(1).substract(allCoordinates.get(0)).length()) {
             distanceLeft -= allCoordinates.get(1).substract(allCoordinates.get(0)).length();
             allCoordinates.remove(0);

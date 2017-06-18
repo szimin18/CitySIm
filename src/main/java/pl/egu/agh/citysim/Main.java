@@ -14,10 +14,10 @@ public class Main extends Application {
 
     @Override
     public void start(final Stage primaryStage) throws Exception {
-        SimulationRunner simulationRunner = new SimulationRunner();
+        final SimulationRunner simulationRunner = new SimulationRunner();
 
         final GraphicsContext graphicsContext = createAndShowStage(primaryStage).getGraphicsContext2D();
-        final MapViewer mapViewer = new MapViewer(graphicsContext, simulationRunner.createInitalRoadMap());
+        final MapViewer mapViewer = new MapViewer(graphicsContext, simulationRunner.createInitialRoadMap());
 
         simulationRunner.run(mapViewer::drawCars);
     }

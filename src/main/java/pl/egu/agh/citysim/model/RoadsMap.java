@@ -28,10 +28,11 @@ public class RoadsMap {
     @NoArgsConstructor(access = PRIVATE)
     public static final class Builder {
         private final Map<String, Crossing> crossings = newHashMap();
+        @Getter
         private final Set<Road> roads = newHashSet();
 
         public Builder addCrossing(final String name, final Coordinates coordinates) {
-            crossings.put(name, new Crossing(coordinates, name));
+            crossings.put(name, new Crossing(name, coordinates));
             return this;
         }
 
@@ -49,17 +50,17 @@ public class RoadsMap {
             return this;
         }
 
-        public RoadsMap build(CitySimState state) {
+        public RoadsMap build(final CitySimState state) {
             crossings.values().forEach(Crossing::initialize);
             state.variableKeys().stream()
-                    .map(o -> (Pair<String,String>)o)
+                    .map(o -> (Pair<String, String>) o)
                     .forEach(roadDefinition -> {
-                        Crossing crossing = crossings.get(roadDefinition.getValue());
-                        Road road = crossing.getInRoads().stream()
+                        final Crossing crossing = crossings.get(roadDefinition.getValue());
+                        final Road road = crossing.getInRoads().stream()
                                 .filter(r -> r.getStart().getName().equals(roadDefinition.getKey()))
                                 .findFirst()
                                 .get();
-                        int ind = crossing.getInRoads().indexOf(road);
+                        final int ind = crossing.getInRoads().indexOf(road);
                         crossing.getLightsTimes().remove(ind);
                         crossing.getLightsTimes().add(ind, state.get(roadDefinition));
                     });
