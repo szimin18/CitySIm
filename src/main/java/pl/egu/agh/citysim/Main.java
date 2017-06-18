@@ -1,15 +1,11 @@
 package pl.egu.agh.citysim;
 
-import com.google.common.collect.ImmutableSet;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import pl.egu.agh.citysim.model.Coordinates;
-import pl.egu.agh.citysim.model.RoadsMap;
-import pl.egu.agh.citysim.model.SimulationParameters;
 
 public class Main extends Application {
     public static void main(final String[] args) {
@@ -18,16 +14,12 @@ public class Main extends Application {
 
     @Override
     public void start(final Stage primaryStage) throws Exception {
-        final RoadsMap.Builder builder = RoadsMap.builder();
-        final SimulationParameters simulationParameters = createMap1(builder);
-        final RoadsMap roadsMap = builder.build();
+        SimulationRunner simulationRunner = new SimulationRunner();
 
         final GraphicsContext graphicsContext = createAndShowStage(primaryStage).getGraphicsContext2D();
-        final MapViewer mapViewer = new MapViewer(graphicsContext, roadsMap);
+        final MapViewer mapViewer = new MapViewer(graphicsContext, simulationRunner.createInitalRoadMap());
 
-        final Simulation simulation = new Simulation(roadsMap, 40, mapViewer::drawCars,
-                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 100);
-        simulation.run();
+        simulationRunner.run(mapViewer::drawCars);
     }
 
     private static Canvas createAndShowStage(final Stage stage) {
@@ -39,9 +31,5 @@ public class Main extends Application {
         stage.show();
 
         return canvas;
-    }
-
-    private static SimulationParameters createMap1(final RoadsMap.Builder builder) {
-        return SimulationRunner.createMap1(builder);
     }
 }
