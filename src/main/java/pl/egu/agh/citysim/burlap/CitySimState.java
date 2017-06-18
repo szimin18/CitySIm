@@ -14,11 +14,15 @@ public class CitySimState implements MutableState {
 
     private final static int MAX_NUM_OF_EPOCHS = 100;
     private final Map<Pair<String, String>, Double> crossingsLightDuration;
-    private int epochNumber;
+    private final int epochNumber;
 
     public CitySimState(Map<Pair<String, String>, Double> crossingsLightDuration) {
+        this(crossingsLightDuration, 0);
+    }
+
+    private CitySimState(Map<Pair<String, String>, Double> crossingsLightDuration, int epochNumber) {
         this.crossingsLightDuration = crossingsLightDuration;
-        epochNumber = 0;
+        this.epochNumber = epochNumber;
     }
 
     @Override
@@ -39,7 +43,7 @@ public class CitySimState implements MutableState {
 
     @Override
     public State copy() {
-        return new CitySimState(newHashMap(crossingsLightDuration));
+        return new CitySimState(newHashMap(crossingsLightDuration), epochNumber + 1);
     }
 
     public boolean isTerminal() {

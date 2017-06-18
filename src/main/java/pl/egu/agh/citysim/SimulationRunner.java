@@ -1,14 +1,20 @@
 package pl.egu.agh.citysim;
 
+import burlap.mdp.core.action.Action;
+import burlap.mdp.core.action.ActionType;
+import burlap.mdp.core.action.UniversalActionType;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import javafx.util.Pair;
+import pl.egu.agh.citysim.burlap.CitySimAction;
 import pl.egu.agh.citysim.burlap.CitySimState;
 import pl.egu.agh.citysim.model.CarsState;
 import pl.egu.agh.citysim.model.Coordinates;
 import pl.egu.agh.citysim.model.RoadsMap;
 import pl.egu.agh.citysim.model.SimulationParameters;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
@@ -22,7 +28,7 @@ public class SimulationRunner {
         simulationParameters = createMap1(builder);
     }
 
-    public static SimulationParameters createMap1(final RoadsMap.Builder builder) {
+    private static SimulationParameters createMap1(final RoadsMap.Builder builder) {
         builder.addCrossing("A", new Coordinates(200, 200));
         builder.addCrossing("B", new Coordinates(600, 200));
         builder.addCrossing("G", new Coordinates(800, 200));
@@ -56,6 +62,41 @@ public class SimulationRunner {
         return new SimulationParameters(ImmutableSet.of("X", "Y", "Z"), ImmutableSet.of("W", "U", "T"), 100);
     }
 
+    public List<ActionType> createAllActions() {
+        return ImmutableList.of(
+                new UniversalActionType(new CitySimAction(new Pair<>("A", "B"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("A", "B"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("B", "A"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("B", "A"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("B", "C"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("B", "C"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("C", "B"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("C", "B"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("D", "A"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("D", "A"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("A", "D"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("A", "D"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("E", "C"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("E", "C"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("G", "B"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("G", "B"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("F", "E"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("F", "E"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("X", "A"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("X", "A"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("A", "E"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("A", "E"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("Z", "D"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("Z", "D"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("C", "W"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("C", "W"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("B", "U"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("B", "U"), CitySimAction.LightDurationDelta.SHORTEN)),
+                new UniversalActionType(new CitySimAction(new Pair<>("D", "T"), CitySimAction.LightDurationDelta.PROLONG)),
+                new UniversalActionType(new CitySimAction(new Pair<>("D", "T"), CitySimAction.LightDurationDelta.SHORTEN))
+        );
+    }
+
     public CitySimState createInitialState() {
         Map<Pair<String, String>, Double> initialState = Maps.newHashMap();
         Double initialLightsTime = 3000.;
@@ -82,7 +123,8 @@ public class SimulationRunner {
     }
 
     public double run(CitySimState state) {
-        return run(state, c -> {});
+        return run(state, c -> {
+        });
     }
 
     public double run(Consumer<CarsState> carsStateConsumer) {

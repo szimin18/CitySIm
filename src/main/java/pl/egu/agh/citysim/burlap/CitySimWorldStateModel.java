@@ -4,15 +4,12 @@ import burlap.mdp.core.action.Action;
 import burlap.mdp.core.state.State;
 import burlap.mdp.singleagent.model.statemodel.SampleStateModel;
 
+// consider FullStateModel with probability distribution for specific action, for now we're using simple solution
 public class CitySimWorldStateModel implements SampleStateModel {
-//    following will be needed for FullStateModel
-//    @Override
-//    public List<StateTransitionProb> stateTransitions(State state, Action action) {
-//        return null;
-//    }
 
     @Override
     public State sample(State state, Action action) {
-        return null;
+        CitySimAction citySimAction = (CitySimAction)action;
+        return ((CitySimState)state).set(citySimAction.getRoadDefinition(), citySimAction.getLightDurationDelta().getDelta());
     }
 }

@@ -1,9 +1,12 @@
 package pl.egu.agh.citysim.burlap;
 
 import burlap.mdp.auxiliary.DomainGenerator;
+import burlap.mdp.core.action.ActionType;
 import burlap.mdp.singleagent.SADomain;
 import burlap.mdp.singleagent.model.FactoredModel;
 import pl.egu.agh.citysim.SimulationRunner;
+
+import java.util.List;
 
 public class CitySimWorld implements DomainGenerator {
 
@@ -16,8 +19,7 @@ public class CitySimWorld implements DomainGenerator {
     @Override
     public SADomain generateDomain() {
         final SADomain domain = new SADomain();
-
-        domain.addActionTypes(); // TODO all possible actions to take (for starters each possible roadDefinition gets +-100ms on lights)
+        simulationRunner.createAllActions().forEach(domain::addActionType);
 
         CitySimWorldStateModel stateModel = new CitySimWorldStateModel();
         CitySimRewardFunction rewardFunction = new CitySimRewardFunction(simulationRunner);
