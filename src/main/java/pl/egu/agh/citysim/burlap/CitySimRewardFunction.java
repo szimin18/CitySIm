@@ -21,6 +21,6 @@ public class CitySimRewardFunction implements RewardFunction {
     @Override
     public double reward(final State state, final Action action, final State state1) {
         cache.computeIfAbsent(state1, s -> simulationRunner.run((CitySimState) s));
-        return cache.get(state1);
+        return -cache.get(state1);
     }
 }
