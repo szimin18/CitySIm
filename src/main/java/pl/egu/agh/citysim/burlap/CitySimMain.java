@@ -44,9 +44,9 @@ public class CitySimMain {
         // nTrials is for resetting environment and returning to initial state (in our case 3000ms of lights)
         // so it's probably nTrials * trialLength of cit-sim runs
         // oh, and check MAX_NUM_OF_EPOCHS in CitySimState, it's set to 100 and after this state is considered terminal,
-        // it might finish simulation early if trialLenght is bigger
+        // it might finish simulation early if trialLength is bigger
         final LearningAlgorithmExperimenter exp = new LearningAlgorithmExperimenter(env,
-                10, 100, qLearningFactory);
+                1, 1, qLearningFactory);
 
         // we're expecting rewards to get lower after some time on chart, other columns are less important
         exp.setUpPlottingConfiguration(500, 250, 2, 1000,

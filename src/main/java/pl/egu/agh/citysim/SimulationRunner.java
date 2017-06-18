@@ -2,7 +2,6 @@ package pl.egu.agh.citysim;
 
 import burlap.mdp.core.action.ActionType;
 import burlap.mdp.core.action.UniversalActionType;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import javafx.util.Pair;
 import pl.egu.agh.citysim.burlap.CitySimAction;
@@ -12,7 +11,9 @@ import pl.egu.agh.citysim.model.*;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.stream.Collectors.toMap;
 import static pl.egu.agh.citysim.util.Consumers.empty;
 
@@ -57,48 +58,28 @@ public class SimulationRunner {
         builder.addRoad("B", "U");
         builder.addRoad("D", "T");
 
-        return new SimulationParameters(ImmutableSet.of("X", "Y", "Z"), ImmutableSet.of("W", "U", "T"), 1000);
+        return new SimulationParameters(ImmutableSet.of("X", "Y", "Z"), ImmutableSet.of("W", "U", "T"), 500);
     }
 
     public List<ActionType> createAllActions() {
-        return ImmutableList.of(
-                new UniversalActionType(new CitySimAction(new Pair<>("A", "B"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("A", "B"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("B", "A"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("B", "A"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("B", "C"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("B", "C"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("C", "B"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("C", "B"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("D", "A"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("D", "A"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("A", "D"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("A", "D"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("E", "C"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("E", "C"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("G", "B"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("G", "B"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("F", "E"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("F", "E"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("X", "A"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("X", "A"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("A", "E"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("A", "E"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("Z", "D"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("Z", "D"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("C", "W"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("C", "W"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("B", "U"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("B", "U"), CitySimAction.LightDurationDelta.SHORTEN)),
-                new UniversalActionType(new CitySimAction(new Pair<>("D", "T"), CitySimAction.LightDurationDelta.PROLONG)),
-                new UniversalActionType(new CitySimAction(new Pair<>("D", "T"), CitySimAction.LightDurationDelta.SHORTEN))
-        );
+        return builder.getRoads().stream().flatMap(road -> {
+            if (road.getEnd().getInRoads().size() > 1) {
+                final Pair<String, String> roadName = new Pair<>(road.getStart().getName(), road.getEnd().getName());
+                return Stream.<ActionType>of(
+                        new UniversalActionType(new CitySimAction(roadName, CitySimAction.LightDurationDelta.PROLONG)),
+                        new UniversalActionType(new CitySimAction(roadName, CitySimAction.LightDurationDelta.SHORTEN)));
+            } else {
+                return Stream.empty();
+            }
+        }).collect(toImmutableList());
     }
 
     public CitySimState createInitialState() {
         final Set<Road> roads = builder.getRoads();
         final Double initialLightsTime = 3000.;
-        return new CitySimState(roads.stream().collect(toMap(road -> new Pair<>(road.getStart().getName(), road.getEnd().getName()), road -> initialLightsTime)));
+        return new CitySimState(roads.stream().collect(toMap(
+                road -> new Pair<>(road.getStart().getName(), road.getEnd().getName()),
+                road -> initialLightsTime)));
     }
 
     public RoadsMap createInitialRoadMap() {
@@ -116,8 +97,8 @@ public class SimulationRunner {
     private double run(final CitySimState state, final Consumer<CarsState> carsUpdateConsumer) {
         final RoadsMap roadsMap = builder.build(state);
         final Simulation simulation = new Simulation(roadsMap, 0, carsUpdateConsumer,
-                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 1000);
-        simulation.run();
+                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 500);
+        simulation.run(false);
         return simulation.averageCarTime();
     }
 

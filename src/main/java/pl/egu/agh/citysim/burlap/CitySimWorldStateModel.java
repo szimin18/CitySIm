@@ -8,8 +8,9 @@ import burlap.mdp.singleagent.model.statemodel.SampleStateModel;
 public class CitySimWorldStateModel implements SampleStateModel {
 
     @Override
-    public State sample(State state, Action action) {
-        CitySimAction citySimAction = (CitySimAction)action;
-        return ((CitySimState)state).set(citySimAction.getRoadDefinition(), citySimAction.getLightDurationDelta().getDelta());
+    public State sample(final State state, final Action action) {
+        final CitySimAction citySimAction = (CitySimAction) action;
+        final CitySimState citySimState = (CitySimState) state;
+        return citySimState.set(citySimAction.getRoadDefinition(), citySimState.get(citySimAction.getRoadDefinition()) + citySimAction.getLightDurationDelta().getDelta());
     }
 }

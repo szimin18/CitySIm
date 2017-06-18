@@ -12,7 +12,7 @@ public class CitySimAction implements Action {
     private final Pair<String, String> roadDefinition;
     private final LightDurationDelta lightDurationDelta;
 
-    public CitySimAction(Pair<String, String> roadDefinition, LightDurationDelta lightDurationDelta) {
+    public CitySimAction(final Pair<String, String> roadDefinition, final LightDurationDelta lightDurationDelta) {
         this.roadDefinition = roadDefinition;
         this.lightDurationDelta = lightDurationDelta;
     }
@@ -32,9 +32,9 @@ public class CitySimAction implements Action {
         PROLONG(100.);
 
         @Getter
-        private double delta;
+        private final double delta;
 
-        private LightDurationDelta(double delta) {
+        LightDurationDelta(final double delta) {
             this.delta = delta;
         }
     }

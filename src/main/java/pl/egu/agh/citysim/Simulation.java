@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import pl.egu.agh.citysim.model.*;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -31,6 +32,7 @@ import static pl.egu.agh.citysim.MapViewer.CAR_SIZE;
 public class Simulation {
     private static final Random RANDOM = new Random();
     private static final ImmutableList<Color> COLORS_LIST = ImmutableList.of(RED, GREEN, BLUE, WHITE);
+    private static int counter = 0;
 
     private final RoadsMap roadsMap;
     private final long intervalMiliseconds;
@@ -45,42 +47,51 @@ public class Simulation {
         return carTimes.stream().mapToDouble(t -> t).average().orElse(0);
     }
 
-    public void run() {
-        final AnimationTimer timer = new AnimationTimer() {
-            private CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
-            private final long intervalNanoseconds = intervalMiliseconds * 1000000;
-            private long lastNanoseconds = 0;
-            private long nanosecondsPassed = 0;
-            private long stepsPassed = 0;
+    public void run(final boolean inTimer) {
+        if (inTimer) {
+            final Semaphore semaphore = new Semaphore(0);
+            final AnimationTimer timer = new AnimationTimer() {
+                private CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
+                private final long intervalNanoseconds = intervalMiliseconds * 1000000;
+                private long lastNanoseconds = 0;
+                private long nanosecondsPassed = 0;
+                private long stepsPassed = 0;
 
-            @Override
-            public void handle(final long now) {
-                if (lastNanoseconds != 0) {
-                    nanosecondsPassed += now - lastNanoseconds;
-                    if (nanosecondsPassed > intervalNanoseconds) {
-                        nanosecondsPassed -= intervalNanoseconds;
-                        carsState = calculateFrame(carsState);
-                        carsUpdateConsumer.accept(carsState);
-                        stepsPassed++;
-                        if (stepsPassed >= simulationSteps) {
-                            stop();
+                @Override
+                public void handle(final long now) {
+                    if (lastNanoseconds != 0) {
+                        nanosecondsPassed += now - lastNanoseconds;
+                        if (nanosecondsPassed > intervalNanoseconds) {
+                            nanosecondsPassed -= intervalNanoseconds;
+                            carsState = calculateFrame(carsState);
+                            carsUpdateConsumer.accept(carsState);
+                            stepsPassed++;
+                            System.out.println("Frame " + stepsPassed + " done");
+                            if (stepsPassed >= simulationSteps) {
+                                semaphore.release();
+                                stop();
+                            }
                         }
                     }
+                    lastNanoseconds = now;
                 }
-                lastNanoseconds = now;
+            };
+            timer.start();
+            try {
+                semaphore.acquire();
+            } catch (final InterruptedException e) {
+                e.printStackTrace();
             }
-        };
-        timer.start();
-//        Executors.newSingleThreadScheduledExecutor()
-//                .scheduleAtFixedRate(new Runnable() {
-//                    CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
-//
-//                    @Override
-//                    public void run() {
-//                        carsState = calculateFrame(carsState);
-//                        carsUpdateConsumer.accept(carsState);
-//                    }
-//                }, intervalMiliseconds, intervalMiliseconds, MILLISECONDS);
+        } else {
+            CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
+            counter++;
+            if (counter % 10 == 0) {
+                System.out.println("Starting out of timer simulation: " + counter);
+            }
+            for (int i = 0; i < simulationSteps; i++) {
+                carsState = calculateFrame(carsState);
+            }
+        }
     }
 
     private CarsState calculateFrame(final CarsState carsState) {
@@ -91,7 +102,7 @@ public class Simulation {
             final ImmutableSet<Car> newCars = spawnCars(requiredNumberOfCars - cars.size(), cars);
             final ImmutableSet<CarShadow> previousCarsShadows = cars.stream().map(Car::shadow).collect(toImmutableSet());
 
-            final ImmutableSet<Car> movedCars = cars.stream().flatMap(car -> calculateFrameForCar(car, previousCarsShadows, roadsMap)).collect(toImmutableSet());
+            final ImmutableSet<Car> movedCars = cars.parallelStream().flatMap(car -> calculateFrameForCar(car, previousCarsShadows, roadsMap)).collect(toImmutableSet());
             return new CarsState(ImmutableSet.<Car>builder().addAll(newCars).addAll(movedCars).build(), roadsMap);
         } catch (final Throwable e) {
             e.printStackTrace();
