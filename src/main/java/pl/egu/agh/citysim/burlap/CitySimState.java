@@ -14,7 +14,7 @@ import static com.google.common.collect.Maps.newHashMap;
 @EqualsAndHashCode
 public class CitySimState implements MutableState {
 
-    private final static int MAX_NUM_OF_EPOCHS = 2;
+    private final static int MAX_NUM_OF_EPOCHS = 100;
     private final Map<Pair<String, String>, Double> crossingsLightDuration;
     private int epochNumber;
 
