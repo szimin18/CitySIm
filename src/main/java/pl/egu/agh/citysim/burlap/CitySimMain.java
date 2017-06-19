@@ -32,7 +32,7 @@ public class CitySimMain {
             @Override
             public LearningAgent generateAgent() {
                 final QLearning qLearning = new QLearning(citySimWorldDomain, 0.99, hashingFactory, 0.3, 0.5);
-                qLearning.initializeForPlanning(50);
+                qLearning.initializeForPlanning(10);
                 return qLearning;
             }
         };
@@ -48,7 +48,7 @@ public class CitySimMain {
         // oh, and check MAX_NUM_OF_EPOCHS in CitySimState, it's set to 100 and after this state is considered terminal,
         // it might finish simulation early if trialLength is bigger
         final LearningAlgorithmExperimenter exp = new LearningAlgorithmExperimenter(env,
-                1, 150, qLearningFactory);
+                10, 10, qLearningFactory);
 
         // we're expecting rewards to get lower after some time on chart, other columns are less important
         exp.setUpPlottingConfiguration(500, 250, 2, 1000,

@@ -4,19 +4,19 @@ import burlap.mdp.core.state.MutableState;
 import burlap.mdp.core.state.State;
 import com.google.common.collect.Lists;
 import javafx.util.Pair;
-import lombok.EqualsAndHashCode;
+import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newHashMap;
 
-@EqualsAndHashCode
+@Data
 public class CitySimState implements MutableState {
-
     private final static int MAX_NUM_OF_EPOCHS = 100;
+
     private final Map<Pair<String, String>, Double> crossingsLightDuration;
-    private int epochNumber;
+    private int epochNumber = 0;
 
     public CitySimState(final Map<Pair<String, String>, Double> crossingsLightDuration) {
         this(crossingsLightDuration, 0);

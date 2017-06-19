@@ -3,19 +3,12 @@ package pl.egu.agh.citysim.burlap;
 import burlap.mdp.core.action.Action;
 import javafx.util.Pair;
 import lombok.Getter;
-import lombok.ToString;
+import lombok.Value;
 
-@ToString
-@Getter
+@Value
 public class CitySimAction implements Action {
-
-    private final Pair<String, String> roadDefinition;
-    private final LightDurationDelta lightDurationDelta;
-
-    public CitySimAction(final Pair<String, String> roadDefinition, final LightDurationDelta lightDurationDelta) {
-        this.roadDefinition = roadDefinition;
-        this.lightDurationDelta = lightDurationDelta;
-    }
+    Pair<String, String> roadDefinition;
+    LightDurationDelta lightDurationDelta;
 
     @Override
     public String actionName() {

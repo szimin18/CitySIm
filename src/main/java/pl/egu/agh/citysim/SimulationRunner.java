@@ -87,18 +87,18 @@ public class SimulationRunner {
     }
 
     public double run(final CitySimState state) {
-        return run(state, empty());
+        return run(state, empty(), 0);
     }
 
-    public double run(final Consumer<CarsState> carsStateConsumer) {
-        return run(createInitialState(), carsStateConsumer);
+    public double run(final Consumer<CarsState> carsStateConsumer, final int intervalMiliseconds) {
+        return run(createInitialState(), carsStateConsumer, intervalMiliseconds);
     }
 
-    private double run(final CitySimState state, final Consumer<CarsState> carsUpdateConsumer) {
+    private double run(final CitySimState state, final Consumer<CarsState> carsUpdateConsumer, final int intervalMiliseconds) {
         final RoadsMap roadsMap = builder.build(state);
-        final Simulation simulation = new Simulation(roadsMap, 40, carsUpdateConsumer,
-                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 10000);
-        simulation.run(true);
+        final Simulation simulation = new Simulation(roadsMap, intervalMiliseconds, carsUpdateConsumer,
+                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 500);
+        simulation.run();
         return simulation.averageCarTime();
     }
 

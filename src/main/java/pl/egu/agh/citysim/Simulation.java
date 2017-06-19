@@ -49,8 +49,8 @@ public class Simulation {
         return carTimes.stream().mapToDouble(t -> t).average().orElse(0);
     }
 
-    public void run(final boolean inTimer) {
-        if (inTimer) {
+    public void run() {
+        if (intervalMiliseconds != 0) {
             final AnimationTimer timer = new AnimationTimer() {
                 private CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
                 private final long intervalNanoseconds = intervalMiliseconds * 1000000;
@@ -64,7 +64,7 @@ public class Simulation {
                         nanosecondsPassed += now - lastNanoseconds;
                         if (nanosecondsPassed > intervalNanoseconds) {
                             nanosecondsPassed -= intervalNanoseconds;
-                            carsState = calculateFrame(carsState);
+                            carsState = calculateFrame(carsState, stepsPassed);
                             carsUpdateConsumer.accept(carsState);
                             stepsPassed++;
                             System.out.println("Frame " + stepsPassed + " done");
@@ -80,7 +80,7 @@ public class Simulation {
         } else {
             CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
             for (int i = 0; i < simulationSteps; i++) {
-                carsState = calculateFrame(carsState);
+                carsState = calculateFrame(carsState, i);
             }
             counter++;
             if (counter % 10 == 0) {
@@ -89,15 +89,15 @@ public class Simulation {
         }
     }
 
-    private CarsState calculateFrame(final CarsState carsState) {
+    private CarsState calculateFrame(final CarsState carsState, final long step) {
         try {
             carsState.getRoadsMap().getCrossings().forEach(crossing -> crossing.passed(40));
 
             final ImmutableSet<Car> cars = carsState.getCars();
-            final ImmutableSet<Car> newCars = spawnCars(requiredNumberOfCars - cars.size(), cars);
+            final ImmutableSet<Car> newCars = spawnCars(requiredNumberOfCars - cars.size(), cars, step);
             final ImmutableSet<CarShadow> previousCarsShadows = cars.stream().map(Car::shadow).collect(toImmutableSet());
 
-            final ImmutableSet<Car> movedCars = cars.parallelStream().flatMap(car -> calculateFrameForCar(car, previousCarsShadows, roadsMap)).collect(toImmutableSet());
+            final ImmutableSet<Car> movedCars = cars.parallelStream().flatMap(car -> calculateFrameForCar(car, previousCarsShadows, step)).collect(toImmutableSet());
             return new CarsState(ImmutableSet.<Car>builder().addAll(newCars).addAll(movedCars).build(), roadsMap);
         } catch (final Throwable e) {
             e.printStackTrace();
@@ -105,9 +105,10 @@ public class Simulation {
         }
     }
 
-    private Stream<Car> calculateFrameForCar(final Car car, final ImmutableSet<CarShadow> previousCarsShadows, final RoadsMap roadsMap) {
+    private Stream<Car> calculateFrameForCar(final Car car, final ImmutableSet<CarShadow> previousCarsShadows, final long step) {
         final double currentCarDistancePassedOnRoad = car.getDistancePassedOnRoad();
         final Road currentCarRoad = car.getRoad();
+        final double distancePassedPerFrame = 2 * CAR_SIZE;
         final double maxDistanceForCurrentCar = previousCarsShadows.stream()
                 .filter(carShadow -> carShadow.getRoad().equals(currentCarRoad))
                 .filter(carShadow -> carShadow.getDistancePassedOnRoad() > currentCarDistancePassedOnRoad)
@@ -115,8 +116,8 @@ public class Simulation {
                     final double distancePassedOnRoad = carShadow.getDistancePassedOnRoad();
                     final boolean isMoved = carShadow.isMoved();
                     final double maxDistance = max(0, distancePassedOnRoad - currentCarDistancePassedOnRoad - CAR_SIZE * (isMoved ? 2 : 7 / 5));
-                    return min(maxDistance, 3 * CAR_SIZE / 10);
-                }).min().orElse(3 * CAR_SIZE / 10);
+                    return min(maxDistance, distancePassedPerFrame);
+                }).min().orElse(distancePassedPerFrame);
 
         if (maxDistanceForCurrentCar == 0) {
             car.stay();
@@ -127,7 +128,7 @@ public class Simulation {
                 if (!car.nextCrossing().isPresent()) { // end of road
                     carTimesLock.lock();
                     try {
-                        carTimes.add(System.currentTimeMillis() - car.getCreationTime());
+                        carTimes.add(step - car.getCreationTime());
                     } finally {
                         carTimesLock.unlock();
                     }
@@ -152,7 +153,7 @@ public class Simulation {
         }
     }
 
-    private ImmutableSet<Car> spawnCars(final int count, final ImmutableSet<Car> allCars) {
+    private ImmutableSet<Car> spawnCars(final int count, final ImmutableSet<Car> allCars, final long step) {
         final Set<String> remainingStarts = newHashSet(starts);
         final Set<Car> newCars = newHashSet();
 
@@ -160,13 +161,13 @@ public class Simulation {
                 .forEach(i -> {
                     final Crossing start = randomCrossing(remainingStarts);
                     remainingStarts.remove(start.getName());
-                    spawnCar(start, allCars).ifPresent(newCars::add);
+                    spawnCar(start, allCars, step).ifPresent(newCars::add);
                 });
 
         return ImmutableSet.copyOf(newCars);
     }
 
-    private Optional<Car> spawnCar(final Crossing crossing, final ImmutableSet<Car> allCars) {
+    private Optional<Car> spawnCar(final Crossing crossing, final ImmutableSet<Car> allCars, final long step) {
         if (allCars.stream().map(Car::getLocation).anyMatch(isEqual(crossing.getCoordinates()))) {
             return Optional.empty();
         }
@@ -174,7 +175,7 @@ public class Simulation {
         final Crossing end = randomCrossing(ends);
 
         final List<Crossing> nextCrossings = bfsPath(crossing, end);
-        final Car car = new Car(randomColor(), nextCrossings);
+        final Car car = new Car(randomColor(), nextCrossings, step);
         car.moveTo(crossing.getOutRoads().get(nextCrossings.get(0)), 0);
 
         return Optional.of(car);

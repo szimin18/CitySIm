@@ -19,7 +19,7 @@ public class Main extends Application {
         final GraphicsContext graphicsContext = createAndShowStage(primaryStage).getGraphicsContext2D();
         final MapViewer mapViewer = new MapViewer(graphicsContext, simulationRunner.createInitialRoadMap());
 
-        simulationRunner.run(mapViewer::drawCars);
+        simulationRunner.run(mapViewer::drawCars, 40);
     }
 
     private static Canvas createAndShowStage(final Stage stage) {

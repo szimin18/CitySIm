@@ -6,14 +6,12 @@ import lombok.Data;
 import java.util.List;
 import java.util.Optional;
 
-import static java.lang.System.currentTimeMillis;
-
 @Data
 public class Car {
     private final Color color;
     private final List<Crossing> nextCrossings;
-    private final long creationTime = currentTimeMillis();
 
+    private final long creationTime;
     private Road road;
     private double distancePassedOnRoad;
     private Coordinates location;
