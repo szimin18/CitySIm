@@ -8,7 +8,8 @@ import lombok.AllArgsConstructor;
 import pl.egu.agh.citysim.model.*;
 
 import java.util.*;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -42,6 +43,7 @@ public class Simulation {
     private final int requiredNumberOfCars;
     private final int simulationSteps;
     private final List<Long> carTimes = newArrayList();
+    private final Lock carTimesLock = new ReentrantLock();
 
     public double averageCarTime() {
         return carTimes.stream().mapToDouble(t -> t).average().orElse(0);
@@ -49,7 +51,6 @@ public class Simulation {
 
     public void run(final boolean inTimer) {
         if (inTimer) {
-            final Semaphore semaphore = new Semaphore(0);
             final AnimationTimer timer = new AnimationTimer() {
                 private CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
                 private final long intervalNanoseconds = intervalMiliseconds * 1000000;
@@ -68,7 +69,6 @@ public class Simulation {
                             stepsPassed++;
                             System.out.println("Frame " + stepsPassed + " done");
                             if (stepsPassed >= simulationSteps) {
-                                semaphore.release();
                                 stop();
                             }
                         }
@@ -77,11 +77,6 @@ public class Simulation {
                 }
             };
             timer.start();
-            try {
-                semaphore.acquire();
-            } catch (final InterruptedException e) {
-                e.printStackTrace();
-            }
         } else {
             CarsState carsState = new CarsState(ImmutableSet.of(), roadsMap);
             for (int i = 0; i < simulationSteps; i++) {
@@ -120,8 +115,8 @@ public class Simulation {
                     final double distancePassedOnRoad = carShadow.getDistancePassedOnRoad();
                     final boolean isMoved = carShadow.isMoved();
                     final double maxDistance = max(0, distancePassedOnRoad - currentCarDistancePassedOnRoad - CAR_SIZE * (isMoved ? 2 : 7 / 5));
-                    return min(maxDistance, CAR_SIZE / 5);
-                }).min().orElse(CAR_SIZE / 5);
+                    return min(maxDistance, 3 * CAR_SIZE / 10);
+                }).min().orElse(3 * CAR_SIZE / 10);
 
         if (maxDistanceForCurrentCar == 0) {
             car.stay();
@@ -130,7 +125,12 @@ public class Simulation {
             if (currentCarRoad.getEnd().isGreen(currentCarRoad)) { // has green light
                 car.markVisited(currentCarRoad.getEnd());
                 if (!car.nextCrossing().isPresent()) { // end of road
-                    carTimes.add(System.currentTimeMillis() - car.getCreationTime());
+                    carTimesLock.lock();
+                    try {
+                        carTimes.add(System.currentTimeMillis() - car.getCreationTime());
+                    } finally {
+                        carTimesLock.unlock();
+                    }
                     return empty();
                 } else {
                     car.moveTo(currentCarRoad.getEnd().getOutRoads().get(car.nextCrossing().get()), maxDistanceForCurrentCar - (currentCarRoad.getLength() - currentCarDistancePassedOnRoad));

@@ -96,9 +96,9 @@ public class SimulationRunner {
 
     private double run(final CitySimState state, final Consumer<CarsState> carsUpdateConsumer) {
         final RoadsMap roadsMap = builder.build(state);
-        final Simulation simulation = new Simulation(roadsMap, 0, carsUpdateConsumer,
-                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 500);
-        simulation.run(false);
+        final Simulation simulation = new Simulation(roadsMap, 40, carsUpdateConsumer,
+                simulationParameters.getStarts(), simulationParameters.getEnds(), simulationParameters.getRequiredNumberOfCars(), 10000);
+        simulation.run(true);
         return simulation.averageCarTime();
     }
 
